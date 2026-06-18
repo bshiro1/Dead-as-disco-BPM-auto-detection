@@ -1,0 +1,4 @@
+imageio-ffmpeg
+librosa
+numpy
+yt-dlp
