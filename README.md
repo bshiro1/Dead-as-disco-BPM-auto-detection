@@ -1,11 +1,10 @@
 # DaD Custom Song Tools
 
-Standalone tools for importing custom songs into **Dead as Disco**.
+Standalone tool for importing custom songs into **Dead as Disco**.
 
-## Tools
+## Tool
 
-- **DaD_BPM_AutoDetect** - Drag-and-drop audio files to auto-detect BPM and create ready-to-use song folders
-- **DaD_Custom_Song_Importer** - Paste a YouTube/playlist URL to download and import songs
+- **DaD_BPM_AutoDetect** - Drag-and-drop audio files or folders to auto-detect BPM and create ready-to-use song folders
 
 ## How to Build
 
@@ -24,18 +23,18 @@ pip install -r requirements.txt
 
 ```bash
 python src/DaD_BPM_AutoDetect.py "path\to\song.mp3"
-python src/DaD_Custom_Song_Importer.py "https://youtube.com/watch?v=..."
 ```
 
-### Build Executables
+Drag & drop files or folders onto `Drop Songs Here.bat`.
+
+### Build Executable
 
 ```bash
 pip install pyinstaller
 pyinstaller --onefile --name DaD_BPM_AutoDetect src/DaD_BPM_AutoDetect.py
-pyinstaller --onefile --name DaD_Custom_Song_Importer src/DaD_Custom_Song_Importer.py
 ```
 
-Executables will be in the `dist/` folder.
+Executable will be in the `dist/` folder.
 
 ## Output
 
