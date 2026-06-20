@@ -18,6 +18,7 @@ except ImportError:
 try:
     import librosa
     import numpy as np
+    print(f"  [DEBUG] librosa version: {librosa.__version__}", file=sys.stderr)
 except ImportError:
     input("ERROR: librosa not found. Run: pip install librosa")
     sys.exit(1)
@@ -49,15 +50,24 @@ def get_duration(fp):
 def detect_bpm(audio_path):
     try:
         a, sr = librosa.load(str(audio_path), sr=22050, mono=True)
+        print(f"  [DEBUG] audio loaded: {len(a)} samples, sr={sr}")
         if len(a) < 22050:
+            print("  [DEBUG] audio too short")
             return 120
-        t, _ = librosa.beat.beat_track(y=a, sr=sr)
+        t, beats = librosa.beat.beat_track(y=a, sr=sr)
+        print(f"  [DEBUG] beat_track returned t={t}, type={type(t).__name__}, beats={len(beats)}")
         bpm_val = round(float(t))
+        print(f"  [DEBUG] bpm_val={bpm_val}")
         if bpm_val <= 0:
+            print("  [DEBUG] bpm_val <= 0, returning 120")
             return 120
-        return max(100, min(200, bpm_val))
+        result = max(100, min(200, bpm_val))
+        print(f"  [DEBUG] final bpm={result}")
+        return result
     except Exception as e:
         print(f"  [BPM ERROR] {e}")
+        import traceback
+        traceback.print_exc()
         return 120
 
 
