@@ -23,6 +23,7 @@ except ImportError:
     sys.exit(1)
 
 FFMPEG = get_ffmpeg_exe()
+os.environ["PATH"] = os.path.dirname(FFMPEG) + os.pathsep + os.environ.get("PATH", "")
 EXPORT_DIR = Path(os.environ["LOCALAPPDATA"]) / "Pagoda" / "Saved" / "ImportedSongs"
 INVALID_CHARS = re.compile(r'[<>:"/\\|?*]')
 
@@ -47,19 +48,10 @@ def get_duration(fp):
 
 def detect_bpm(audio_path):
     try:
-        r = subprocess.run(
-            [FFMPEG, "-y", "-i", str(audio_path), "-vn", "-f", "s16le",
-             "-acodec", "pcm_s16le", "-ar", "22050", "-ac", "1", "-"],
-            capture_output=True, timeout=120,
-        )
-        if r.returncode != 0:
-            return 120
-
-        a = np.frombuffer(r.stdout, dtype=np.int16).astype(np.float32) / 32768.0
+        a, sr = librosa.load(str(audio_path), sr=22050, mono=True)
         if len(a) < 22050:
             return 120
-
-        t, _ = librosa.beat.beat_track(y=a, sr=22050)
+        t, _ = librosa.beat.beat_track(y=a, sr=sr)
         bpm_val = round(float(t))
         if bpm_val <= 0:
             return 120
