@@ -48,19 +48,22 @@ def get_duration(fp):
 def detect_bpm(audio_path):
     try:
         r = subprocess.run(
-            [FFMPEG, "-y", "-i", str(audio_path), "-vn", "-acodec", "pcm_s16le",
-             "-ar", "22050", "-ac", "1", "-f", "wav", "-"],
+            [FFMPEG, "-y", "-i", str(audio_path), "-vn", "-f", "s16le",
+             "-acodec", "pcm_s16le", "-ar", "22050", "-ac", "1", "-"],
             capture_output=True, timeout=120,
         )
         if r.returncode != 0:
             return 120
 
         a = np.frombuffer(r.stdout, dtype=np.int16).astype(np.float32) / 32768.0
-        if len(a) < 2048:
+        if len(a) < 22050:
             return 120
 
         t, _ = librosa.beat.beat_track(y=a, sr=22050)
-        return max(100, min(200, round(float(t))))
+        bpm_val = round(float(t))
+        if bpm_val <= 0:
+            return 120
+        return max(100, min(200, bpm_val))
     except Exception:
         return 120
 
@@ -137,19 +140,46 @@ def process_file(input_path):
     return None
 
 
+AUDIO_EXTENSIONS = {".m4a", ".mp3", ".aac", ".wav", ".flac", ".ogg"}
+
+
+def collect_files(paths):
+    files = []
+    for p in paths:
+        p = Path(p)
+        if p.is_dir():
+            for root, _, filenames in os.walk(p):
+                for name in filenames:
+                    ext = Path(name).suffix.lower()
+                    if ext in AUDIO_EXTENSIONS:
+                        files.append(Path(root) / name)
+        elif p.is_file() and p.suffix.lower() in AUDIO_EXTENSIONS:
+            files.append(p)
+    return files
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     if not args:
         print(
-            "Drag & drop audio files (M4A, MP3, AAC, WAV, FLAC, OGG) onto this exe.\n"
+            "Drag & drop audio files or folders onto this exe.\n"
             "Output goes to: IMPORTED SONGS FOLDER"
         )
         input("\nPress Enter to exit...")
         sys.exit(0)
 
+    targets = collect_files(args)
+
+    if not targets:
+        print("No supported audio files found.")
+        input("\nPress Enter to exit...")
+        sys.exit(1)
+
+    print(f"Found {len(targets)} file(s) to process\n")
+
     errors = []
-    for f in args:
-        err = process_file(f)
+    for f in targets:
+        err = process_file(str(f))
         if err:
             errors.append(err)
 

@@ -55,19 +55,22 @@ def get_duration(fp):
 def detect_bpm(audio_path):
     try:
         r = subprocess.run(
-            [FFMPEG, "-y", "-i", str(audio_path), "-vn", "-acodec", "pcm_s16le",
-             "-ar", "22050", "-ac", "1", "-f", "wav", "-"],
+            [FFMPEG, "-y", "-i", str(audio_path), "-vn", "-f", "s16le",
+             "-acodec", "pcm_s16le", "-ar", "22050", "-ac", "1", "-"],
             capture_output=True, timeout=120,
         )
         if r.returncode != 0:
             return 120
 
         a = np.frombuffer(r.stdout, dtype=np.int16).astype(np.float32) / 32768.0
-        if len(a) < 2048:
+        if len(a) < 22050:
             return 120
 
         t, _ = librosa.beat.beat_track(y=a, sr=22050)
-        return max(100, min(200, round(float(t))))
+        bpm_val = round(float(t))
+        if bpm_val <= 0:
+            return 120
+        return max(100, min(200, bpm_val))
     except Exception:
         return 120
 
