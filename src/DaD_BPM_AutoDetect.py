@@ -56,7 +56,8 @@ def detect_bpm(audio_path):
         if bpm_val <= 0:
             return 120
         return max(100, min(200, bpm_val))
-    except Exception:
+    except Exception as e:
+        print(f"  [BPM ERROR] {e}")
         return 120
 
 
